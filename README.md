@@ -25,7 +25,6 @@ most points.
 6. The game ends when all the squares are occupied, because no more moves are left.
 
 7. On each turn, a player can make one of two moves:
-
 Raid – You can take over any unoccupied square that is adjacent to one of your current pieces (horizontally or vertically, but not diagonally). You place a new piece in the taken over square.
 Also, any enemy pieces adjacent to your new piece (horizontally or vertically, but not diagonally) are conquered and replaced by your own pieces. You can Raid a square even if there are no
 enemy pieces adjacent to it to be conquered. Once you have made this move, your turn is over.
