@@ -1,6 +1,6 @@
 # @author Sagar Makwana
 
-#Function Definition
+#---------------------------------------Function Definitions------------------------------------------------
 
 #Checks whether the input position can be sneaked or not.
 #Returns a boolean
@@ -51,18 +51,112 @@ def getRaidValue(currentBoardState, boardValues, player, iPosition, jPosition):
     return raidValue
 
 
+#Algorithm for Greedy BFS algorithm
+def GBFS(gameTask, gamePlayer, gameEnemyPlayer,gameCutOff, boardValues, boardState):
+
+    #Initialization of Maximization Variables
+    maxValue = -1
+    maxMove = -1  # maxMove {1:Raid, 2:Sneak}
+    maxIPosition = -1
+    maxJPosition = -1
+
+    print 'Before GBFS:'
+    print boardState
+
+    #Check the status of each position
+    for i in range(0,5):
+        for j in range(0,5):
+            #If the position is not occupied check if its sneakable.
+            if (not(isOccupied(boardState,i,j))):
+                if (isSneakable(boardState,gamePlayer,i,j)):
+                    if (int(boardValues[i][j]) > maxValue):
+                        maxValue = int(boardValues[i][j])
+                        maxIPosition = i
+                        maxJPosition = j
+                        maxMove = 2
+
+            # If the position is occupied by the player
+            elif (boardState[i][j] == gamePlayer):
+
+                if (i-1 >= 0 and not(isOccupied(boardState,i-1,j))):
+                    raidValue = getRaidValue(boardState,boardValues,gamePlayer,i-1,j)
+                    if (raidValue > maxValue):
+                        maxValue = raidValue
+                        maxIPosition = i-1
+                        maxJPosition = j
+                        maxMove = 1
+
+                if (j-1 >= 0 and not(isOccupied(boardState,i,j-1))):
+                    raidValue = getRaidValue(boardState,boardValues,gamePlayer,i,j-1)
+                    if (raidValue > maxValue):
+                        maxValue = raidValue
+                        maxIPosition = i
+                        maxJPosition = j-1
+                        maxMove = 1
+
+                if (j+1 <= 4 and not(isOccupied(boardState,i,j+1))):
+                    raidValue = getRaidValue(boardState,boardValues,gamePlayer,i,j+1)
+                    if (raidValue > maxValue):
+                        maxValue = raidValue
+                        maxIPosition = i
+                        maxJPosition = j+1
+                        maxMove = 1
+
+                if (i+1 <= 4 and not(isOccupied(boardState,i+1,j))):
+                    raidValue = getRaidValue(boardState,boardValues,gamePlayer,i+1,j)
+                    if (raidValue > maxValue):
+                        maxValue = raidValue
+                        maxIPosition = i+1
+                        maxJPosition = j
+                        maxMove = 1
+
+
+    if (maxMove == 1): #Raid
+        #Do raid operation
+
+        boardState[maxIPosition][maxJPosition] = gamePlayer
+
+        if (maxIPosition-1 >= 0 and boardState[maxIPosition-1][maxJPosition] == gameEnemyPlayer):
+            boardState[maxIPosition-1][maxJPosition] = gamePlayer
+
+        if (maxJPosition-1 >= 0 and boardState[maxIPosition][maxJPosition-1] == gameEnemyPlayer):
+            boardState[maxIPosition][maxJPosition-1] = gamePlayer
+
+        if (maxJPosition+1 <=4  and boardState[maxIPosition][maxJPosition+1] == gameEnemyPlayer):
+            boardState[maxIPosition][maxJPosition+1] = gamePlayer
+
+        if (maxIPosition+1 <= 4 and boardState[maxIPosition+1][maxJPosition] == gameEnemyPlayer):
+            boardState[maxIPosition+1][maxJPosition] = gamePlayer
+
+        print 'Raid Operation performed at ',maxIPosition,' ',maxJPosition
+
+    elif (maxMove == 2):
+        #Do sneak operation
+        boardState[maxIPosition][maxJPosition] = gamePlayer
+
+        print 'Sneak operation performed',maxIPosition,' ',maxJPosition
+
+    print 'After GBFS:'
+    print boardState
+
+    outputFile = open('next_state.txt','w')
+
+    for i in range(0,5):
+        outputFile.write(''.join(boardState[i]))
+        outputFile.write('\n')
+
+
+
+#----------------------------------------Input and Control--------------------------------------------------
+
+
+#1.Handling the Input
 
 #Initialisation of the variables
 gameTask = 0
 gamePlayer = 0
 gameEnemyPlayer = 0
 gameCutOff = 0
-
-#Initialization of Maximization Variables
-maxValue = -1
-maxMove = -1  # maxMove {1:Raid, 2:Sneak}
-maxIPosition = -1
-maxJPosition = -1
 
 boardValues = []
 boardState = []
@@ -88,91 +182,8 @@ for i in range(0, 5):
 
 inputFile.close()
 
+#2.Control
 
-
-#The Game Logic starts here.
-
-print 'Before GBFS:'
-print boardState
-
-#Check the status of each position
-for i in range(0,5):
-    for j in range(0,5):
-        #If the position is not occupied check if its sneakable.
-        if (not(isOccupied(boardState,i,j))):
-            if (isSneakable(boardState,gamePlayer,i,j)):
-                if (int(boardValues[i][j]) > maxValue):
-                    maxValue = int(boardValues[i][j])
-                    maxIPosition = i
-                    maxJPosition = j
-                    maxMove = 2
-
-        # If the position is occupied by the player
-        elif (boardState[i][j] == gamePlayer):
-
-            if (i-1 >= 0 and not(isOccupied(boardState,i-1,j))):
-                raidValue = getRaidValue(boardState,boardValues,gamePlayer,i-1,j)
-                if (raidValue > maxValue):
-                    maxValue = raidValue
-                    maxIPosition = i-1
-                    maxJPosition = j
-                    maxMove = 1
-
-            if (j-1 >= 0 and not(isOccupied(boardState,i,j-1))):
-                raidValue = getRaidValue(boardState,boardValues,gamePlayer,i,j-1)
-                if (raidValue > maxValue):
-                    maxValue = raidValue
-                    maxIPosition = i
-                    maxJPosition = j-1
-                    maxMove = 1
-
-            if (j+1 <= 4 and not(isOccupied(boardState,i,j+1))):
-                raidValue = getRaidValue(boardState,boardValues,gamePlayer,i,j+1)
-                if (raidValue > maxValue):
-                    maxValue = raidValue
-                    maxIPosition = i
-                    maxJPosition = j+1
-                    maxMove = 1
-
-            if (i+1 <= 4 and not(isOccupied(boardState,i+1,j))):
-                raidValue = getRaidValue(boardState,boardValues,gamePlayer,i+1,j)
-                if (raidValue > maxValue):
-                    maxValue = raidValue
-                    maxIPosition = i+1
-                    maxJPosition = j
-                    maxMove = 1
-
-
-if (maxMove == 1): #Raid
-    #Do raid operation
-
-    boardState[maxIPosition][maxJPosition] = gamePlayer
-
-    if (maxIPosition-1 >= 0 and boardState[maxIPosition-1][maxJPosition] == gameEnemyPlayer):
-        boardState[maxIPosition-1][maxJPosition] = gamePlayer
-
-    if (maxJPosition-1 >= 0 and boardState[maxIPosition][maxJPosition-1] == gameEnemyPlayer):
-        boardState[maxIPosition][maxJPosition-1] = gamePlayer
-
-    if (maxJPosition+1 <=4  and boardState[maxIPosition][maxJPosition+1] == gameEnemyPlayer):
-        boardState[maxIPosition][maxJPosition+1] = gamePlayer
-
-    if (maxIPosition+1 <= 4 and boardState[maxIPosition+1][maxJPosition] == gameEnemyPlayer):
-        boardState[maxIPosition+1][maxJPosition] = gamePlayer
-
-    print 'Raid Operation performed at ',maxIPosition,' ',maxJPosition
-
-elif (maxMove == 2):
-    #Do sneak operation
-    boardState[maxIPosition][maxJPosition] = gamePlayer
-
-    print 'Sneak operation performed',maxIPosition,' ',maxJPosition
-
-print 'After GBFS:'
-print boardState
-
-outputFile = open('next_state.txt','w')
-
-for i in range(0,5):
-    outputFile.write(''.join(boardState[i]))
-    outputFile.write('\n')
+if int(gameTask) == 1:
+    GBFS(gameTask,gamePlayer,gameEnemyPlayer,gameCutOff,boardValues,boardState)
+    print 'Greedy Best First Search in execution'
