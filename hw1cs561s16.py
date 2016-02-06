@@ -66,7 +66,7 @@ def getRaidValue(currentBoardState, boardValues, player, iPosition, jPosition):
 
     return raidValue
 
-#Prints the log
+#Prints the log for minimax
 #@param boardPosition:Alphanumeric position on the board ex.A1,B2
 def printLog(boardPosition, depth, evaluationUtility, traverseLogFile):
 
@@ -76,6 +76,29 @@ def printLog(boardPosition, depth, evaluationUtility, traverseLogFile):
         traverseLogFile.write(boardPosition+','+str(depth)+','+'-Infinity')
     else:
         traverseLogFile.write(boardPosition+','+str(depth)+','+str(evaluationUtility))
+
+    traverseLogFile.write('\n')
+
+#Prints the log for alpha beta pruning
+#@param boardPosition:Alphanumeric position on the board ex.A1,B2
+def printABLog(boardPosition, depth, evaluationUtility, alpha, beta, traverseLogFile):
+
+    if evaluationUtility == float('inf'):
+        evaluationUtility = 'Infinity'
+    elif evaluationUtility == -float('inf'):
+        evaluationUtility = '-Infinity'
+
+    if alpha == float('inf'):
+        alpha = 'Infinity'
+    elif alpha == -float('inf'):
+        alpha = '-Infinity'
+
+    if beta ==  float('inf'):
+        beta = 'Infinity'
+    elif beta == -float('inf'):
+        beta = '-Infinity'
+
+    traverseLogFile.write(boardPosition+','+str(depth)+','+str(evaluationUtility)+','+str(alpha)+','+str(beta))
 
     traverseLogFile.write('\n')
 
@@ -183,7 +206,7 @@ def GBFS(gameTask, gamePlayer, gameEnemyPlayer,gameCutOff, boardValues, boardSta
         outputFile.write('\n')
 
 # Constant parameters :{boardValue, gamePlayer, cutoffDepth, traverseLogFile }
-def MINIMAX(boardState, boardValue, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, traverseLogFile):
+def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, traverseLogFile):
 
     evaluationUtility = -99
 
@@ -245,8 +268,221 @@ def MINIMAX(boardState, boardValue, gamePlayer, player, cutoffDepth, currentDept
     return evaluationUtility
 
 
+# Constant parameters :{boardValue, gamePlayer, cutoffDepth, traverseLogFile }
+def ABPruning(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, alpha, beta, traverseLogFile):
+
+    evaluationUtility = -99
+    #alpha = float(alpha)
+    #beta = float(beta)
+
+    #Base Condition
+    if currentDepth == cutoffDepth:
+        evaluationUtility = getEvaluationValue(boardState,boardValues,gamePlayer)
+
+        printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+        if currentDepth%2 == 0:
+            alpha = evaluationUtility
+        else:
+            beta = evaluationUtility
+
+        return evaluationUtility,alpha,beta
+
+    #Recursive Element
+    if currentDepth%2 == 0:
+        evaluationUtility = -float('inf')
+    else:
+        evaluationUtility = float('inf')
+
+    if (currentDepth != 0):
+        printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+    else:
+        printABLog("root",currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+    isBreak = False
+
+    for i in range(0,5):
+        if isBreak == True:
+            break
+
+        for j in range(0,5):
+
+            if (not(isOccupied(boardState,i,j))):
+                #Initializing the new board state for next move
+                newBoardState = [eachRow[:] for eachRow in boardState]
+                if (isSneakable(boardState,player,i,j)):
+                    newBoardState[i][j] = player
+                else:
+                    enemyPlayer = getEnemy(player)
+                    newBoardState[i][j] = player
+
+                    if (i-1 >= 0 and newBoardState[i-1][j] == enemyPlayer):
+                        newBoardState[i-1][j] = player
+
+                    if (j-1 >= 0 and newBoardState[i][j-1] == enemyPlayer):
+                        newBoardState[i][j-1] = player
+
+                    if (j+1 <=4  and newBoardState[i][j+1] == enemyPlayer):
+                        newBoardState[i][j+1] = player
+
+                    if (i+1 <= 4 and newBoardState[i+1][j] == enemyPlayer):
+                        newBoardState[i+1][j] = player
+
+                childUtility,childAlpha,childBeta = ABPruning(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,alpha,beta,traverseLogFile)
+                childUtility = float(childUtility)
+                childAlpha = float(childAlpha)
+                childBeta = float(childBeta)
+
+                if currentDepth%2 == 0:
+
+                    #if (childBeta > alpha and childBeta < beta):
+                     #   alpha = childBeta
+                    #else:
+                     #   isBreak = True
+                      #  break
+
+                    if (childBeta > alpha):
+                        if childBeta < beta:
+                            alpha = childBeta
+                            if (childUtility > evaluationUtility):
+                                evaluationUtility = childUtility
+
+                            if currentDepth != 0:
+                                printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+                            else:
+                                printABLog("root",currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+                        else:
+                            isBreak = True
+                            break
+                    else:
+                        continue
 
 
+
+                else:
+
+                    #if (childAlpha < beta and childAlpha > alpha):
+                     #   beta = childAlpha
+                    #else:
+                     #   isBreak = True
+                      #  break
+
+                    if childAlpha < beta:
+                        if childAlpha > alpha:
+                            beta = childAlpha
+                            if (childUtility < evaluationUtility):
+                                evaluationUtility = childUtility
+
+                            if currentDepth != 0:
+                                printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+                            else:
+                                printABLog("root",currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+                        else:
+                            isBreak = True
+                            break
+                    else:
+                        continue
+
+
+
+    if isBreak == True:
+        if currentDepth != 0:
+            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+        else:
+            printABLog("root",currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+    return evaluationUtility,alpha,beta
+
+# Constant parameters :{boardValue, gamePlayer, cutoffDepth, traverseLogFile }
+def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, alpha, beta, traverseLogFile ):
+
+    evaluationUtility = -99
+
+    #Base Condition
+    if currentDepth == cutoffDepth:
+        evaluationUtility = getEvaluationValue(boardState,boardValues,gamePlayer)
+
+        if (currentDepth != 0):
+            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+        else:
+            printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+        return evaluationUtility
+
+    #Recursive Element
+    if currentDepth%2 == 0:
+        evaluationUtility = -float('inf')
+    else:
+        evaluationUtility = float('inf')
+
+    if (currentDepth != 0):
+        printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+    else:
+        printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+    isBreak = False
+    for i in range(0,5):
+        if isBreak == True:
+            break
+
+        for j in range(0,5):
+
+            if (not(isOccupied(boardState,i,j))):
+                #Initializing the new board state for next move
+                newBoardState = [eachRow[:] for eachRow in boardState]
+                if (isSneakable(boardState,player,i,j)):
+                    newBoardState[i][j] = player
+                else:
+                    enemyPlayer = getEnemy(player)
+                    newBoardState[i][j] = player
+
+                    if (i-1 >= 0 and newBoardState[i-1][j] == enemyPlayer):
+                        newBoardState[i-1][j] = player
+
+                    if (j-1 >= 0 and newBoardState[i][j-1] == enemyPlayer):
+                        newBoardState[i][j-1] = player
+
+                    if (j+1 <=4  and newBoardState[i][j+1] == enemyPlayer):
+                        newBoardState[i][j+1] = player
+
+                    if (i+1 <= 4 and newBoardState[i+1][j] == enemyPlayer):
+                        newBoardState[i+1][j] = player
+
+                childUtility = ABPrune(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,alpha,beta,traverseLogFile)
+
+                if currentDepth%2 == 0:
+                    if childUtility > alpha:
+                        evaluationUtility = childUtility
+
+                        if childUtility < beta:
+                            alpha = childUtility
+                        else:
+                            isBreak = True
+                            break
+                else:
+                    if childUtility < beta:
+                        evaluationUtility = childUtility
+
+                        if childUtility > alpha:
+                            beta = childUtility
+                        else:
+                            isBreak = True
+                            break
+
+                if currentDepth != 0:
+                    printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+                else:
+                    printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+    if isBreak == True:
+        if currentDepth  != 0:
+            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+        else:
+            printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+
+
+    return evaluationUtility
 
 #----------------------------------------Input and Control--------------------------------------------------
 
@@ -288,15 +524,25 @@ inputFile.close()
 #2.Control
 
 if gameTask == 1:
-    GBFS(gameTask,gamePlayer,gameEnemyPlayer,gameCutOff,boardValues,boardState)
     print 'Greedy Best First Search in execution.'
+    GBFS(gameTask,gamePlayer,gameEnemyPlayer,gameCutOff,boardValues,boardState)
 elif gameTask == 2:
+    print 'Minimax Search in execution.'
     traverseLogFile = open('traverse_log.txt','w')
     traverseLogFile.write("Node,Depth,Value\n")
     result = MINIMAX(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,traverseLogFile)
     traverseLogFile.close()
 
     print 'Final Utility Value:',result
+elif gameTask == 3:
+    print 'Alpha-Beta Pruning Search in execution.'
+    traverseLogFile = open('traverse_log.txt','w')
+    traverseLogFile.write("Node,Depth,Value,Alpha,Beta\n")
+    result = ABPrune(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,-float('inf'),float('inf'),traverseLogFile)
+    traverseLogFile.close()
+
+    print 'Final Utility Value:',result#,', alpha:',alpha,', beta:',beta
+
 
 
 
