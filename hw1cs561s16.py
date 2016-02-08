@@ -1,4 +1,5 @@
 # @author Sagar Makwana
+import sys
 
 #---------------------------------------Function Definitions------------------------------------------------
 
@@ -89,39 +90,41 @@ def performOperation(currentBoardState, gamePlayer, iRaidPosition, jRaidPosition
 
 #Prints the log for minimax
 #@param boardPosition:Alphanumeric position on the board ex.A1,B2
-def printLog(boardPosition, depth, evaluationUtility, traverseLogFile):
+def printLog(boardPosition, depth, evaluationUtility, traverseLogFile, printFlag):
 
-    if evaluationUtility == float('inf'):
-        traverseLogFile.write(boardPosition+','+str(depth)+','+'Infinity')
-    elif evaluationUtility == -float('inf'):
-        traverseLogFile.write(boardPosition+','+str(depth)+','+'-Infinity')
-    else:
-        traverseLogFile.write(boardPosition+','+str(depth)+','+str(evaluationUtility))
+    if printFlag == True:
+        if evaluationUtility == float('inf'):
+            traverseLogFile.write(boardPosition+','+str(depth)+','+'Infinity')
+        elif evaluationUtility == -float('inf'):
+            traverseLogFile.write(boardPosition+','+str(depth)+','+'-Infinity')
+        else:
+            traverseLogFile.write(boardPosition+','+str(depth)+','+str(evaluationUtility))
 
-    traverseLogFile.write('\n')
+        traverseLogFile.write('\n')
 
 #Prints the log for alpha beta pruning
 #@param boardPosition:Alphanumeric position on the board ex.A1,B2
-def printABLog(boardPosition, depth, evaluationUtility, alpha, beta, traverseLogFile):
+def printABLog(boardPosition, depth, evaluationUtility, alpha, beta, traverseLogFile, printFlag):
 
-    if evaluationUtility == float('inf'):
-        evaluationUtility = 'Infinity'
-    elif evaluationUtility == -float('inf'):
-        evaluationUtility = '-Infinity'
+    if printFlag == True:
+        if evaluationUtility == float('inf'):
+            evaluationUtility = 'Infinity'
+        elif evaluationUtility == -float('inf'):
+            evaluationUtility = '-Infinity'
 
-    if alpha == float('inf'):
-        alpha = 'Infinity'
-    elif alpha == -float('inf'):
-        alpha = '-Infinity'
+        if alpha == float('inf'):
+            alpha = 'Infinity'
+        elif alpha == -float('inf'):
+            alpha = '-Infinity'
 
-    if beta ==  float('inf'):
-        beta = 'Infinity'
-    elif beta == -float('inf'):
-        beta = '-Infinity'
+        if beta ==  float('inf'):
+            beta = 'Infinity'
+        elif beta == -float('inf'):
+            beta = '-Infinity'
 
-    traverseLogFile.write(boardPosition+','+str(depth)+','+str(evaluationUtility)+','+str(alpha)+','+str(beta))
+        traverseLogFile.write(boardPosition+','+str(depth)+','+str(evaluationUtility)+','+str(alpha)+','+str(beta))
 
-    traverseLogFile.write('\n')
+        traverseLogFile.write('\n')
 
 #Returns the alphanumeric board position
 def getBoardPosition(iPosition, jPosition):
@@ -144,9 +147,9 @@ def getNextMove(boardState, boardValues, player, playerAlgo, cutoff, traverseLog
     if playerAlgo == 1:
         trash,iNext,jNext = GBFS(boardState,boardValues,player)
     elif playerAlgo == 2:
-        trash,iNext,jNext = MINIMAX(boardState,boardValues,player,player,cutoff,0,-99,-99,traverseLogFile)
+        trash,iNext,jNext = MINIMAX(boardState,boardValues,player,player,cutoff,0,-99,-99,traverseLogFile,False)
     elif playerAlgo == 3:
-        trash,iNext,jNext = ABPrune(boardState,boardValues,player,player,cutoff,0,-99,-99,-float('inf'),float('inf'),traverseLogFile)
+        trash,iNext,jNext = ABPrune(boardState,boardValues,player,player,cutoff,0,-99,-99,-float('inf'),float('inf'),traverseLogFile,False)
 
     return iNext,jNext
 
@@ -194,7 +197,7 @@ def GBFS(boardState, boardValues, gamePlayer):
 
 #Algorithm for Minimax
 #Constant parameters :{boardValue, gamePlayer, cutoffDepth, traverseLogFile }
-def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, traverseLogFile):
+def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, traverseLogFile,printFlag):
 
     evaluationUtility = -99
     iNextPosition = -1
@@ -204,9 +207,9 @@ def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDep
     if currentDepth == cutoffDepth or isBoardFull(boardState):
         evaluationUtility = getEvaluationValue(boardState,boardValues,gamePlayer)
         if currentDepth != 0:
-            printLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,traverseLogFile)
+            printLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,traverseLogFile,printFlag)
         else:
-            printLog('root',currentDepth,evaluationUtility,traverseLogFile)
+            printLog('root',currentDepth,evaluationUtility,traverseLogFile,printFlag)
         return evaluationUtility,iNextPosition,jNextPosition
 
     #Recursive Element
@@ -216,9 +219,9 @@ def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDep
         evaluationUtility = float('inf')
 
     if (currentDepth != 0):
-        printLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,traverseLogFile)
+        printLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,traverseLogFile,printFlag)
     else:
-        printLog("root",currentDepth,evaluationUtility,traverseLogFile)
+        printLog("root",currentDepth,evaluationUtility,traverseLogFile,printFlag)
 
     for i in range(0,5):
         for j in range(0,5):
@@ -244,7 +247,7 @@ def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDep
                     if (i+1 <= 4 and newBoardState[i+1][j] == enemyPlayer):
                         newBoardState[i+1][j] = player
 
-                childUtility,trash1,trash2 = MINIMAX(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,traverseLogFile)
+                childUtility,trash1,trash2 = MINIMAX(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,traverseLogFile,printFlag)
 
                 if currentDepth%2 == 0:
                     if (childUtility > evaluationUtility):
@@ -259,15 +262,15 @@ def MINIMAX(boardState, boardValues, gamePlayer, player, cutoffDepth, currentDep
 
 
                 if currentDepth != 0:
-                    printLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,traverseLogFile)
+                    printLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,traverseLogFile,printFlag)
                 else:
-                    printLog("root",currentDepth,evaluationUtility,traverseLogFile)
+                    printLog("root",currentDepth,evaluationUtility,traverseLogFile,printFlag)
 
     return evaluationUtility,iNextPosition,jNextPosition
 
 #Algorithm for Alpha Beta Pruning
 #Constant parameters :{boardValue, gamePlayer, cutoffDepth, traverseLogFile }
-def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, alpha, beta, traverseLogFile ):
+def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDepth, iSelfPosition, jSelfPosition, alpha, beta, traverseLogFile,printFlag ):
 
     evaluationUtility = -99
     iNextPosition = -1
@@ -278,9 +281,9 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
         evaluationUtility = getEvaluationValue(boardState,boardValues,gamePlayer)
 
         if (currentDepth != 0):
-            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
         else:
-            printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+            printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
 
         return evaluationUtility, iNextPosition, jNextPosition
 
@@ -291,9 +294,9 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
         evaluationUtility = float('inf')
 
     if (currentDepth != 0):
-        printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+        printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
     else:
-        printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+        printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
 
     isBreak = False
     for i in range(0,5):
@@ -323,7 +326,7 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
                     if (i+1 <= 4 and newBoardState[i+1][j] == enemyPlayer):
                         newBoardState[i+1][j] = player
 
-                childUtility,trash1,trash2 = ABPrune(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,alpha,beta,traverseLogFile)
+                childUtility,trash1,trash2 = ABPrune(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,alpha,beta,traverseLogFile,printFlag)
 
                 if currentDepth%2 == 0:
                     if childUtility > alpha:
@@ -349,22 +352,24 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
                             break
 
                 if currentDepth != 0:
-                    printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+                    printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
                 else:
-                    printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+                    printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
 
     if isBreak == True:
         if currentDepth  != 0:
-            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+            printABLog(getBoardPosition(iSelfPosition,jSelfPosition),currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
         else:
-            printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile)
+            printABLog('root',currentDepth,evaluationUtility,alpha,beta,traverseLogFile,printFlag)
 
 
     return evaluationUtility,iNextPosition,jNextPosition
 
 #----------------------------------------Input and Control--------------------------------------------------
 
-countFile = open('input.txt')
+#filename = sys.argv[-1]
+filename = 'input.txt'
+countFile = open(filename)
 decisionCount = 0
 for line in countFile:
     decisionCount = decisionCount+1
@@ -384,7 +389,7 @@ if decisionCount == 13:
     boardState = []
 
     #Reading the input file
-    inputFile = open('input.txt')
+    inputFile = open(filename)
 
     #Reading the game task player and cutoff
     gameTask  = inputFile.readline().strip()
@@ -429,6 +434,13 @@ if decisionCount == 13:
 
         nextStateFile.close()
 
+        with open('next_state.txt', 'rb+') as finalStripFile:
+            finalStripFile.seek(0,2)
+            size=finalStripFile.tell()
+            finalStripFile.truncate(size-1)
+            finalStripFile.close()
+
+
     elif gameTask == 2:
         print 'Minimax Search in execution...'
 
@@ -436,7 +448,7 @@ if decisionCount == 13:
         nextStateFile = open('next_state.txt','w')
         traverseLogFile.write("Node,Depth,Value\n")
 
-        result,iNext,jNext = MINIMAX(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,traverseLogFile)
+        result,iNext,jNext = MINIMAX(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,traverseLogFile,True)
 
         if iNext >= 0 and iNext <= 4 and jNext >= 0 and jNext <= 4:
             print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
@@ -451,6 +463,18 @@ if decisionCount == 13:
 
         traverseLogFile.close()
         nextStateFile.close()
+
+        with open('traverse_log.txt', 'rb+') as finalStripFile:
+            finalStripFile.seek(0,2)
+            size=finalStripFile.tell()
+            finalStripFile.truncate(size-1)
+            finalStripFile.close()
+
+        with open('next_state.txt', 'rb+') as finalStripFile:
+            finalStripFile.seek(0,2)
+            size=finalStripFile.tell()
+            finalStripFile.truncate(size-1)
+            finalStripFile.close()
 
     elif gameTask == 3:
         print 'Alpha-Beta Pruning Search in execution...'
@@ -459,7 +483,7 @@ if decisionCount == 13:
         nextStateFile = open('next_state.txt','w')
         traverseLogFile.write("Node,Depth,Value,Alpha,Beta\n")
 
-        result,iNext,jNext = ABPrune(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,-float('inf'),float('inf'),traverseLogFile)
+        result,iNext,jNext = ABPrune(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,-float('inf'),float('inf'),traverseLogFile,True)
 
         if iNext >= 0 and iNext <= 4 and jNext >= 0 and jNext <= 4:
             print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
@@ -474,6 +498,18 @@ if decisionCount == 13:
 
         traverseLogFile.close()
         nextStateFile.close()
+
+        with open('traverse_log.txt', 'rb+') as finalStripFile:
+            finalStripFile.seek(0,2)
+            size=finalStripFile.tell()
+            finalStripFile.truncate(size-1)
+            finalStripFile.close()
+
+        with open('next_state.txt', 'rb+') as finalStripFile:
+            finalStripFile.seek(0,2)
+            size=finalStripFile.tell()
+            finalStripFile.truncate(size-1)
+            finalStripFile.close()
 
 else:
 
@@ -492,7 +528,7 @@ else:
     boardState = []
 
     #Reading the input file
-    inputFile = open('input.txt')
+    inputFile = open(filename)
 
     gameTask = inputFile.readline().strip()
     gameTask = int(gameTask)
@@ -525,6 +561,9 @@ else:
     #2.Control
 
     traverseLogFile = open('traverse_log.txt','w')
+
+    traceStateFile = open('trace_state.txt','w')
+    traceStateFile.close()
     traceStateFile = open('trace_state.txt','a')
     player1Move = True
 
@@ -556,5 +595,13 @@ else:
             traceStateFile.write('\n')
 
 
-
+    traceStateFile.close()
     traverseLogFile.close()
+
+    with open('trace_state.txt', 'rb+') as finalStripFile:
+        finalStripFile.seek(0,2)
+        size=finalStripFile.tell()
+        finalStripFile.truncate(size-1)
+        finalStripFile.close()
+
+
