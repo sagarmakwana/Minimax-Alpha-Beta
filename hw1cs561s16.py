@@ -1,4 +1,5 @@
 # @author Sagar Makwana
+#Final build updated on 02/08/2016 18:58pm Pacific Time
 import sys
 
 #---------------------------------------Function Definitions------------------------------------------------
@@ -329,8 +330,10 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
                 childUtility,trash1,trash2 = ABPrune(newBoardState,boardValues,gamePlayer,getEnemy(player),cutoffDepth,currentDepth+1,i,j,alpha,beta,traverseLogFile,printFlag)
 
                 if currentDepth%2 == 0:
-                    if childUtility > alpha:
+                    if childUtility > evaluationUtility:
                         evaluationUtility = childUtility
+
+                    if childUtility > alpha:
 
                         if currentDepth == 0:
                             iNextPosition = i
@@ -342,8 +345,10 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
                             isBreak = True
                             break
                 else:
-                    if childUtility < beta:
+                    if childUtility < evaluationUtility:
                         evaluationUtility = childUtility
+
+                    if childUtility < beta:
 
                         if childUtility > alpha:
                             beta = childUtility
@@ -367,8 +372,8 @@ def ABPrune (boardState, boardValues, gamePlayer, player, cutoffDepth, currentDe
 
 #----------------------------------------Input and Control--------------------------------------------------
 
-#filename = sys.argv[-1]
-filename = 'input.txt'
+filename = sys.argv[-1]
+#filename = 'input.txt'
 countFile = open(filename)
 decisionCount = 0
 for line in countFile:
@@ -415,14 +420,14 @@ if decisionCount == 13:
     #2.Control
 
     if gameTask == 1:
-        print 'Greedy Best First Search in execution...'
+        #print 'Greedy Best First Search in execution...'
 
         nextStateFile = open('next_state.txt','w')
 
         result,iNext,jNext = GBFS(boardState,boardValues,gamePlayer)
 
         if iNext >= 0 and iNext <= 4 and jNext >= 0 and jNext <= 4:
-            print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
+            #print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
             if (isSneakable(boardState,gamePlayer,iNext,jNext)):
                 performOperation(boardState, gamePlayer, iNext, jNext,'sneak')
             else:
@@ -442,7 +447,7 @@ if decisionCount == 13:
 
 
     elif gameTask == 2:
-        print 'Minimax Search in execution...'
+        #print 'Minimax Search in execution...'
 
         traverseLogFile = open('traverse_log.txt','w')
         nextStateFile = open('next_state.txt','w')
@@ -451,7 +456,7 @@ if decisionCount == 13:
         result,iNext,jNext = MINIMAX(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,traverseLogFile,True)
 
         if iNext >= 0 and iNext <= 4 and jNext >= 0 and jNext <= 4:
-            print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
+            #print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
             if (isSneakable(boardState,gamePlayer,iNext,jNext)):
                 performOperation(boardState, gamePlayer, iNext, jNext,'sneak')
             else:
@@ -477,7 +482,7 @@ if decisionCount == 13:
             finalStripFile.close()
 
     elif gameTask == 3:
-        print 'Alpha-Beta Pruning Search in execution...'
+        #print 'Alpha-Beta Pruning Search in execution...'
 
         traverseLogFile = open('traverse_log.txt','w')
         nextStateFile = open('next_state.txt','w')
@@ -486,7 +491,7 @@ if decisionCount == 13:
         result,iNext,jNext = ABPrune(boardState,boardValues,gamePlayer,gamePlayer,gameCutOff,0,-99,-99,-float('inf'),float('inf'),traverseLogFile,True)
 
         if iNext >= 0 and iNext <= 4 and jNext >= 0 and jNext <= 4:
-            print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
+            #print 'The position chosen is ',getBoardPosition(iNext,jNext),' with utility value of ',result,'.'
             if (isSneakable(boardState,gamePlayer,iNext,jNext)):
                 performOperation(boardState, gamePlayer, iNext, jNext,'sneak')
             else:
